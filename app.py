@@ -1,6 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, flash
 
 app = Flask(__name__)
+
+app.secret_key = 'mustt.012'
 
 # Data menu kantin kampus sederhana untuk praktikum
 menu_list = [
@@ -31,5 +33,37 @@ menu_list = [
 def home():
     return render_template('index.html', menu_list=menu_list)
 
+
+@app.route('/menu/<int:id>')
+def detail_menu(id):
+    menu = next((item for item in menu_list if item["id"] == id), None)
+    return render_template('detail.html', menu=menu, id=id)
+
+
+@app.route('/halo/<nama>')
+def sapa_user(nama):
+    return f"<h1>Halo, {nama}!</h1><p>Selamat datang di kantin kampus.</p>"
+
+@app.route('/kontak', methods=['GET', 'POST'])
+def kontak():
+    if request.method == 'POST':
+        nama = request.form.get('nama')
+        pesan = request.form.get('pesan')
+        flash(f'Terima kasih, {nama}! Masukan Anda telah berhasil dikirim.', 'success')
+        return redirect(url_for('kontak'))
+    return render_template('kontak.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        u = request.form.get('username')
+        p = request.form.get('password')
+        if u == 'admin' and p == '12345':
+            flash('Login berhasil! Selamat datang, Admin Kantin.', 'success')
+            return redirect(url_for('home'))
+        flash('Username atau password salah! Coba lagi.', 'danger')
+        return redirect(url_for('login'))
+    return render_template('login.html')
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
